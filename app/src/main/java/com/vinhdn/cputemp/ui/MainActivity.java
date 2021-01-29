@@ -12,6 +12,13 @@ import com.vinhdn.cputemp.service.CpuConnector;
 import com.vinhdn.cputemp.service.server.CPUService;
 import com.vinhdn.cputemp.service.server.CPUServiceImpl;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MainActivity extends AppCompatActivity implements TempListener {
 
     private CpuConnector cpuConnector;
@@ -39,7 +46,20 @@ public class MainActivity extends AppCompatActivity implements TempListener {
 
     @Override
     public void onTempChange(int value) {
-        cpuService.postCpuTemp(value);
+        try {
+            JSONObject jsonObject = new JSONObject("{\"health\":[{\"cpu_temp\":" + value + "}]}");
+            cpuService.postCpuTemp(jsonObject).enqueue(new Callback<Object>() {
+                @Override
+                public void onResponse(Call<Object> call, Response<Object> response) {}
+
+                @Override
+                public void onFailure(Call<Object> call, Throwable t) {
+                    t.printStackTrace();
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         runOnUiThread(() -> {
             TextView tvValue = findViewById(R.id.value);
             if(tvValue != null) {
